@@ -37,7 +37,6 @@ const sessions = {}; // token -> { userId }
  * Students MUST STOP using this and replace logic with bcrypt.
  */
 // The insecure fastHash function is no longer needed. All password hashing now uses bcrypt.
-}
 
 // Helper: find user by username
 function findUser(username) {
