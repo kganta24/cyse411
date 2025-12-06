@@ -52,10 +52,19 @@ app.post(
 // Vulnerable route (demo)
 app.post('/read-no-validate', (req, res) => {
   const filename = req.body.filename || '';
-  const joined = path.join(BASE_DIR, filename); // intentionally vulnerable
-  if (!fs.existsSync(joined)) return res.status(404).json({ error: 'File not found', path: joined });
-  const content = fs.readFileSync(joined, 'utf8');
-  res.json({ path: joined, content });
+  // FIX: Canonicalize and validate
+  let normalized;
+  try {
+    normalized = path.resolve(BASE_DIR, decodeURIComponent(filename));
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid filename encoding' });
+  }
+  if (!normalized.startsWith(BASE_DIR + path.sep)) {
+    return res.status(403).json({ error: 'Path traversal detected', path: normalized });
+  }
+  if (!fs.existsSync(normalized)) return res.status(404).json({ error: 'File not found', path: normalized });
+  const content = fs.readFileSync(normalized, 'utf8');
+  res.json({ path: normalized, content });
 });
 
 // Helper route for samples
