@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job 1: fastbank_insecure_classwork/backend (Target Port: 4000)
+  # Job 1: fastbank_insecure_classwork/backend (Port 4000)
   zap_scan:
     runs-on: ubuntu-latest
     steps:
@@ -29,12 +29,13 @@ jobs:
       - name: Run OWASP ZAP full scan (fastbank_insecure_classwork)
         uses: zaproxy/action-full-scan@v0.13.0
         with:
-          # CORRECTED: host.docker.internal + Port 4000
           target: 'http://host.docker.internal:4000' 
           fail_action: true
           allow_issue_writing: false
+          # FIX: Unique artifact name
+          artifact_name: zap_fastbank_classwork 
 
-  # Job 2: canonicalization-example (Target Port: 4000)
+  # Job 2: canonicalization-example (Port 4000)
   zap_canonical:
     runs-on: ubuntu-latest
     steps:
@@ -59,12 +60,13 @@ jobs:
       - name: Run OWASP ZAP full scan (canonicalization-example)
         uses: zaproxy/action-full-scan@v0.13.0
         with:
-          # CORRECTED: host.docker.internal + Port 4000
           target: 'http://host.docker.internal:4000' 
           fail_action: true 
           allow_issue_writing: false
+          # FIX: Unique artifact name
+          artifact_name: zap_canonical
 
-  # Job 3: fastbank-auth-lab/src (Target Port: 3001)
+  # Job 3: fastbank-auth-lab/src (Port 3001)
   zap_auth_lab:
     runs-on: ubuntu-latest
     steps:
@@ -89,12 +91,13 @@ jobs:
       - name: Run OWASP ZAP full scan (fastbank-auth-lab)
         uses: zaproxy/action-full-scan@v0.13.0
         with:
-          # CORRECTED: host.docker.internal + Port 3001
           target: 'http://host.docker.internal:3001' 
           fail_action: true 
           allow_issue_writing: false
+          # FIX: Unique artifact name
+          artifact_name: zap_fastbank_auth
 
-  # Job 4: idor (Target Port: 3000)
+  # Job 4: idor (Port 3000)
   zap_idor:
     runs-on: ubuntu-latest
     steps:
@@ -119,7 +122,8 @@ jobs:
       - name: Run OWASP ZAP full scan (idor)
         uses: zaproxy/action-full-scan@v0.13.0
         with:
-          # CORRECTED: host.docker.internal + Port 3000
           target: 'http://host.docker.internal:3000' 
           fail_action: true 
           allow_issue_writing: false
+          # FIX: Unique artifact name
+          artifact_name: zap_idor
