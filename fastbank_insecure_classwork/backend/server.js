@@ -4,8 +4,17 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 const crypto = require("crypto");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
+
+// Rate limiter for /feedback GET endpoint
+const feedbackLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 10, // limit each IP to 10 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // --- BASIC CORS (clean, not vulnerable) ---
 app.use(
@@ -143,7 +152,7 @@ app.post("/feedback", auth, (req, res) => {
   });
 });
 
-app.get("/feedback", auth, (req, res) => {
+app.get("/feedback", auth, feedbackLimiter, (req, res) => {
   db.all("SELECT user, comment FROM feedback ORDER BY id DESC", (err, rows) => {
     res.json(rows);
   });
