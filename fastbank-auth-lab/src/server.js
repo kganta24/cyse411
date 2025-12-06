@@ -20,12 +20,12 @@ app.use(express.static("public"));
  * For simplicity, we start with a single user whose password is "password123".
  * In the vulnerable version, we hash with a fast hash (SHA-256-like).
  */
+// Secure: bcrypt with salt
 const users = [
   {
     id: 1,
     username: "student",
-    // VULNERABLE: fast hash without salt
-    passwordHash: fastHash("password123") // students must replace this scheme with bcrypt
+    passwordHash: bcrypt.hashSync("password123", bcrypt.genSaltSync(12)) // bcrypt with cost factor 12
   }
 ];
 
@@ -36,9 +36,7 @@ const sessions = {}; // token -> { userId }
  * VULNERABLE FAST HASH FUNCTION
  * Students MUST STOP using this and replace logic with bcrypt.
  */
-function fastHash(password) {
-  return crypto.createHash("sha256").update(password).digest("hex");
-}
+// The insecure fastHash function is no longer needed. All password hashing now uses bcrypt.
 
 // Helper: find user by username
 function findUser(username) {
@@ -74,8 +72,8 @@ app.post("/api/login", (req, res) => {
       .json({ success: false, message: "Unknown username" });
   }
 
-  const candidateHash = fastHash(password);
-  if (candidateHash !== user.passwordHash) {
+  // Use bcrypt to verify password securely
+  if (!bcrypt.compareSync(password, user.passwordHash)) {
     return res
       .status(401)
       .json({ success: false, message: "Wrong password" });
