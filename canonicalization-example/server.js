@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { body, validationResult } = require('express-validator');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
@@ -20,9 +21,18 @@ function resolveSafe(baseDir, userInput) {
   return path.resolve(baseDir, userInput);
 }
 
+// Set up basic rate limiter for expensive POST /read route
+const readLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // max 100 requests per IP per window
+  standardHeaders: true, 
+  legacyHeaders: false, 
+});
+
 // Secure route
 app.post(
   '/read',
+  readLimiter,
   body('filename')
     .exists().withMessage('filename required')
     .bail()
