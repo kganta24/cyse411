@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 const crypto = require("crypto");
+const lusca = require("lusca");
 
 const app = express();
 
@@ -17,6 +18,14 @@ app.use(
 
 app.use(bodyParser.json());
 app.use(cookieParser());
+
+// Apply CSRF protection middleware
+app.use(lusca.csrf());
+
+// Endpoint to provide CSRF token for frontend use
+app.get("/csrf-token", (req, res) => {
+  res.json({ csrfToken: res.locals._csrf });
+});
 
 // --- IN-MEMORY SQLITE DB (clean) ---
 const db = new sqlite3.Database(":memory:");
