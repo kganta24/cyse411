@@ -4,10 +4,15 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 const crypto = require("crypto");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 
-// --- BASIC CORS (clean, not vulnerable) ---
+// Rate limiter for the /transactions route (e.g., 100 requests per 15 minutes per IP)
+const transactionsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+});
 app.use(
   cors({
    origin: ["http://localhost:3001", "http://127.0.0.1:3001"],
@@ -111,7 +116,7 @@ app.get("/me", auth, (req, res) => {
 // ------------------------------------------------------------
 // Q1 — SQLi in transaction search
 // ------------------------------------------------------------
-app.get("/transactions", auth, (req, res) => {
+app.get("/transactions", transactionsLimiter, auth, (req, res) => {
   const q = req.query.q || "";
   const sql = `
     SELECT id, amount, description
