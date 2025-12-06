@@ -2,12 +2,20 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+
+// Set up rate limiter for demo route: max 30 requests per 5 minutes per IP
+const demoLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 30, // limit each IP to 30 requests per windowMs
+});
 
 const BASE_DIR = path.resolve(__dirname, 'files');
 if (!fs.existsSync(BASE_DIR)) fs.mkdirSync(BASE_DIR, { recursive: true });
@@ -50,7 +58,7 @@ app.post(
 );
 
 // Vulnerable route (demo)
-app.post('/read-no-validate', (req, res) => {
+app.post('/read-no-validate', demoLimiter, (req, res) => {
   const filename = req.body.filename || '';
   const joined = path.join(BASE_DIR, filename); // intentionally vulnerable
   if (!fs.existsSync(joined)) return res.status(404).json({ error: 'File not found', path: joined });
