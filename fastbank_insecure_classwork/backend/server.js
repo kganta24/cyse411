@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 const crypto = require("crypto");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 
@@ -152,7 +153,14 @@ app.get("/feedback", auth, (req, res) => {
 // ------------------------------------------------------------
 // Q3 — CSRF + SQLi in email update
 // ------------------------------------------------------------
-app.post("/change-email", auth, (req, res) => {
+// Rate limiter: max 5 change-email requests per minute per IP
+const changeEmailLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5,
+  message: { error: "Too many email change requests. Please try again later." },
+});
+
+app.post("/change-email", auth, changeEmailLimiter, (req, res) => {
   const newEmail = req.body.email;
 
   if (!newEmail.includes("@")) return res.status(400).json({ error: "Invalid email" });
