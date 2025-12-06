@@ -5,6 +5,8 @@ const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 const crypto = require("crypto");
 
+const rateLimit = require("express-rate-limit");
+
 const app = express();
 
 // --- BASIC CORS (clean, not vulnerable) ---
@@ -102,7 +104,13 @@ app.post("/login", (req, res) => {
 // ------------------------------------------------------------
 // /me — clean route, no vulnerabilities
 // ------------------------------------------------------------
-app.get("/me", auth, (req, res) => {
+const meLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: "Too many requests, please try again later." }
+});
+
+app.get("/me", meLimiter, auth, (req, res) => {
   db.get(`SELECT username, email FROM users WHERE id = ${req.user.id}`, (err, row) => {
     res.json(row);
   });
