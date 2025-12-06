@@ -135,9 +135,9 @@ app.post("/feedback", auth, (req, res) => {
 
     const insert = `
       INSERT INTO feedback (user, comment)
-      VALUES ('${username}', '${comment}')
+      VALUES (?, ?)
     `;
-    db.run(insert, () => {
+    db.run(insert, [username, comment], () => {
       res.json({ success: true });
     });
   });
